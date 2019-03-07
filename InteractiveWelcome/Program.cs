@@ -1,52 +1,76 @@
 ﻿using System;
-using System.Drawing;
-using System.Windows.Forms;
+using System.DirectoryServices;
 
-// custom delegate
-public delegate void Startdelegate();
 
-class Eventdemo : Form
+namespace InteractiveWelcome
 {
-    // custom event
-    public event Startdelegate StartEvent;
-
-    public Eventdemo()
+    class Program
     {
-        Button clickMe = new Button();
+        static void Main(string[] args)
+        {
 
-        clickMe.Parent = this;
-        clickMe.Text = "Click Me";
-        clickMe.Location = new Point(
-            (ClientSize.Width - clickMe.Width) / 2,
-            (ClientSize.Height - clickMe.Height) / 2);
+            while (true)
+            {
+                string myChoice;
+                string ou = "";
+                do
+                {
+                    Console.WriteLine("Choose the OU you want to Search\n");
+                    Console.WriteLine("1 - Nellis");
+                    Console.WriteLine("2 - Arcata Way");
+                    Console.WriteLine("Q - Quit");
 
-        // an EventHandler delegate is assigned
-        // to the button's Click event
-        clickMe.Click += new EventHandler(OnClickMeClicked);
+                    myChoice = Console.ReadLine();
 
-        // our custom "Startdelegate" delegate is assigned
-        // to our custom "StartEvent" event.
-        StartEvent += new Startdelegate(OnStartEvent);
+                    switch (myChoice)
+                    {
+                        case "1":
+                            ou = "LDAP://OU=Arcata Way,OU=NTTR,OU=Workstations,DC=jt3,DC=com";
+                            break;
+                        case "2":
+                            ou = "LDAP://OU=Nellis,OU=NTTR,OU=Workstations,DC=jt3,DC=com";
+                            break;
+                        case "Q":
+                            Environment.Exit(0);
+                            break;
+                        case "q":
+                            Environment.Exit(0);
+                            break;
+                        default:
+                            Console.WriteLine("{0} is not a valid choice", myChoice);
+                            break;
+                    }
+                } while (myChoice != "1" && myChoice != "2");
 
-        // fire our custom event
-        StartEvent();
+
+                Console.Write("Choose the number for the OU you want to search.\n");
+                DirectoryEntry entry = new DirectoryEntry("LDAP://JT3-DC-ARC.JT3.com")
+                {
+                    Path = ou,
+                    AuthenticationType = AuthenticationTypes.Secure
+                };
+
+                using (DirectorySearcher ds = new DirectorySearcher(entry))
+                {
+                    ds.PropertiesToLoad.Add("name");
+                    ds.Filter = "(&(objectClass=computer))";
+                    ds.Sort.Direction = SortDirection.Ascending;
+                    ds.Sort.PropertyName = "name";
+                    SearchResultCollection results = ds.FindAll();
+
+                    int itemCount = results.Count;
+
+                    foreach (SearchResult result in results)
+                    {
+                        Console.WriteLine("{0}", result.Properties["name"][0].ToString());
+                    }
+                    Console.WriteLine("Computer Count: {0}", itemCount);
+                    Console.Read();
+                    Console.Clear();
+                }
+            }
+            
+        }
     }
-
-    // this method is called when the "clickMe" button is pressed
-    public void OnClickMeClicked(object sender, EventArgs ea)
-    {
-        MessageBox.Show("You Clicked My Button!");
-    }
-
-    // this method is called when the "StartEvent" Event is fired
-    public void OnStartEvent()
-    {
-        MessageBox.Show("I Just Started!");
-    }
-
-    static void Main(string[] args)
-    {
-        Application.Run(new Eventdemo());
-    }
+    
 }
-//bubba 2 feathers
