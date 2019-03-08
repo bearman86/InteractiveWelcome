@@ -1,12 +1,55 @@
 ﻿using System;
 using System.DirectoryServices;
 using System.Diagnostics;
+using System.Linq;
+using System.Management;
+using System.Security.Policy;
+using System.Threading;
+using Microsoft.Management.Infrastructure;
+using Microsoft.Management.Infrastructure.Options;
 
 
 namespace InteractiveWelcome
 {
     class Program
     {
+        public static CimInstance GetWmiOs(string compName)
+        {
+            CimSession session = CimSession.Create(compName);
+            var allOs = session.QueryInstances(@"root\CIMV2", "WQL", "SELECT * FROM Win32_OperatingSystem");
+            return allOs.Cast<CimInstance>().First();
+        }
+
+        public static void ShutdownHost(string compName)
+        {
+            string adsiPath = string.Format(@"\\{0}\root\cimv2", compName);
+            ManagementScope scope = new ManagementScope(adsiPath);
+            ManagementPath osPath = new ManagementPath("Win32_OperatingSystem");
+            ManagementClass os = new ManagementClass(scope, osPath, null);
+
+            ManagementObjectCollection instances;
+            instances = os.GetInstances();
+            foreach (ManagementObject instance in instances)
+            {
+                object result = instance.InvokeMethod("Shutdown", new object[] { });
+                uint returnValue = (uint) result;
+            }
+        }
+        public static void RebootHost(string compName)
+        {
+            string adsiPath = string.Format(@"\\{0}\root\cimv2", compName);
+            ManagementScope scope = new ManagementScope(adsiPath);
+            ManagementPath osPath = new ManagementPath("Win32_OperatingSystem");
+            ManagementClass os = new ManagementClass(scope, osPath, null);
+
+            ManagementObjectCollection instances;
+            instances = os.GetInstances();
+            foreach (ManagementObject instance in instances)
+            {
+                object result = instance.InvokeMethod("Reboot", new object[] { });
+                uint returnValue = (uint)result;
+            }
+        }
         static void Main(string[] args)
         {
             var doExit = false;
@@ -14,7 +57,7 @@ namespace InteractiveWelcome
             {
                 string ldapFilter = "";
                 string ou = "";
-                Console.WriteLine("Choose the OU you want to Search\n");
+                Console.WriteLine("Choose the OU you want to Search or Function.\n");
                 Console.WriteLine("1 - Nellis");
                 Console.WriteLine("2 - Arcata Way");
                 Console.WriteLine("3 - Computer Name");
@@ -40,12 +83,12 @@ namespace InteractiveWelcome
                         break;
                     case 'S':
                     case 's':
-                        Process.Start("shutdown", @"/s /m \\LSV-VM-TRN1 /t 0");
+                        ShutdownHost("LSV-VM-TRN1");
                         Console.Clear();
                         continue;
                     case 'R':
                     case 'r':
-                        Process.Start("shutdown", @"/r /m \\LSV-VM-TRN1 /t 0");
+                        RebootHost("LSV-VM-TRN0");
                         Console.Clear();
                         continue;
                     case 'Q':
