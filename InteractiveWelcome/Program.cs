@@ -1,6 +1,7 @@
 ﻿using System;
 using System.DirectoryServices;
 using System.Management;
+using System.Security.Policy;
 
 
 namespace InteractiveWelcome
@@ -84,14 +85,18 @@ namespace InteractiveWelcome
                     ds.Filter = ldapFilter;
                     ds.Sort.Direction = SortDirection.Ascending;
                     ds.Sort.PropertyName = "name";
+                    
                     SearchResultCollection results = ds.FindAll();
 
                     int itemCount = results.Count;
-                 
+                    
+                    if (results.Contains(string "LSV-VM-TRN0");
+                    {
+                    
+                    }
                     foreach (SearchResult result in results)
                     {
-
-                        Console.WriteLine("{0}" , result.Properties["name"][0].ToString());
+                        Console.WriteLine("{0}" , result.Properties["name"][0]);
                     }
                     Console.WriteLine("Computer Count: {0}", itemCount);
                     Console.ReadKey();
