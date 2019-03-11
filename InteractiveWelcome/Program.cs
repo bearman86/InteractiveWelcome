@@ -2,37 +2,39 @@
 using System.DirectoryServices;
 using System.DirectoryServices.ActiveDirectory;
 using System.Management;
+using System.Security.Permissions;
 
 
 namespace InteractiveWelcome
 {
     class Program
     {
-        public static void PasswordEncodingMethod()
+        public static string ReadPassword()
         {
-            string pass = "";
-            do
+            string password = "";
+            ConsoleKeyInfo info = Console.ReadKey(true);
+            while (info.Key != ConsoleKey.Enter)
             {
-                ConsoleKeyInfo key = Console.ReadKey(true);
-                // Backspace Should Not Work
-                if (key.Key != ConsoleKey.Backspace && key.Key != ConsoleKey.Enter)
+                if (info.Key != ConsoleKey.Backspace)
                 {
-                    pass += key.KeyChar;
                     Console.Write("*");
+                    password += info.KeyChar;
                 }
-                else
+                else if (info.Key == ConsoleKey.Backspace)
                 {
-                    if (key.Key == ConsoleKey.Backspace && pass.Length > 0)
+                    if (!string.IsNullOrEmpty(password))
                     {
-                        pass = pass.Substring(0, (pass.Length - 1));
-                        Console.Write("\b \b");
-                    }
-                    else if (key.Key == ConsoleKey.Enter)
-                    {
-                        break;
+                        password = password.Substring(0, password.Length - 1);
+                        int pos = Console.CursorLeft;
+                        Console.SetCursorPosition(pos - 1, Console.CursorTop);
+                        Console.Write(" ");
+                        Console.SetCursorPosition(pos - 1, Console.CursorTop);
                     }
                 }
-            } while (true);
+                info = Console.ReadKey(true);
+            }
+            Console.WriteLine();
+            return password;
         }
 
         public static void DoHostCommand(string compName, string doCommand)
@@ -53,7 +55,14 @@ namespace InteractiveWelcome
         
         static void Main(string[] args)
         {
+            Console.WriteLine("Pls key in your Login ID");
+            var loginid = Console.ReadLine();
+            Console.WriteLine("Pls key in your Password");
+            var password = ReadPassword();
+            Console.Write("Your Password is:" + password);
+            Console.ReadLine();
 
+            
 
             DomainCollection dc = Forest.GetCurrentForest().Domains;
             foreach (Domain d in dc)
@@ -136,6 +145,7 @@ namespace InteractiveWelcome
             }
             Environment.Exit(0);
         }
+
     }
     
 }
