@@ -1,13 +1,40 @@
 ﻿using System;
 using System.DirectoryServices;
+using System.DirectoryServices.ActiveDirectory;
 using System.Management;
-using System.Security.Policy;
 
 
 namespace InteractiveWelcome
 {
     class Program
     {
+        public static void PasswordEncodingMethod()
+        {
+            string pass = "";
+            do
+            {
+                ConsoleKeyInfo key = Console.ReadKey(true);
+                // Backspace Should Not Work
+                if (key.Key != ConsoleKey.Backspace && key.Key != ConsoleKey.Enter)
+                {
+                    pass += key.KeyChar;
+                    Console.Write("*");
+                }
+                else
+                {
+                    if (key.Key == ConsoleKey.Backspace && pass.Length > 0)
+                    {
+                        pass = pass.Substring(0, (pass.Length - 1));
+                        Console.Write("\b \b");
+                    }
+                    else if (key.Key == ConsoleKey.Enter)
+                    {
+                        break;
+                    }
+                }
+            } while (true);
+        }
+
         public static void DoHostCommand(string compName, string doCommand)
         {
             string adsiPath = string.Format(@"\\{0}\root\cimv2", compName);
@@ -26,6 +53,14 @@ namespace InteractiveWelcome
         
         static void Main(string[] args)
         {
+
+
+            DomainCollection dc = Forest.GetCurrentForest().Domains;
+            foreach (Domain d in dc)
+            {
+                Console.WriteLine(d.Name);
+            }
+            
             var doExit = false;
             while (doExit != true)
             {
@@ -90,11 +125,7 @@ namespace InteractiveWelcome
 
                     int itemCount = results.Count;
                     
-                    if (results.Contains(string "LSV-VM-TRN0");
-                    {
-                    
-                    }
-                    foreach (SearchResult result in results)
+                                        foreach (SearchResult result in results)
                     {
                         Console.WriteLine("{0}" , result.Properties["name"][0]);
                     }
